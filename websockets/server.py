@@ -40,6 +40,7 @@ class WebSocketServerProtocol(WebSocketCommonProtocol):
         self.origins = origins
         self.subprotocols = subprotocols
         self.extra_headers = extra_headers
+        self.session_data = {}
         super().__init__(**kwds)
 
     def connection_made(self, transport):
@@ -162,6 +163,8 @@ class WebSocketServerProtocol(WebSocketCommonProtocol):
                 self.subprotocol = self.select_subprotocol(
                     client_subprotocols, subprotocols)
 
+        self.after_http_request()
+
         headers = []
         set_header = lambda k, v: headers.append((k, v))
         set_header('Server', USER_AGENT)
@@ -205,6 +208,12 @@ class WebSocketServerProtocol(WebSocketCommonProtocol):
             return None
         priority = lambda p: client_protos.index(p) + server_protos.index(p)
         return sorted(common_protos, key=priority)[0]
+
+    def after_http_request(self):
+        """ A hook executed after the initial HTTP request is received and
+        before 101 response is sent.
+        """
+        pass
 
 
 class WebSocketServer(asyncio.AbstractServer):
